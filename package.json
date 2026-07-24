@@ -1,0 +1,25 @@
+{
+  "name": "translate-image",
+  "description": "Translate images in browser",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "wxt": "^0.20.27"
+  },
+  "dependencies": {
+    "@webext-core/messaging": "^3.0.2",
+    "ya-ocr": "^1.2.1"
+  }
+}
