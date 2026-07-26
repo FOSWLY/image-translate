@@ -1,6 +1,14 @@
+[badge-firefox]: https://img.shields.io/amo/dw/translate-image
+[badge-chrome]: https://img.shields.io/chrome-web-store/v/mfbjdcajnhcdbclbibbmjanmofmnpdnc
+[firefox-link]: https://addons.mozilla.org/ru/firefox/addon/translate-image
+[chrome-link]: https://chromewebstore.google.com/detail/mfbjdcajnhcdbclbibbmjanmofmnpdnc
+
 # Translate Image Browser Extension
 
-Browser extension that translates text on images using OCR and swaps the image source directly on the page.
+[![Firefox downloads][badge-firefox]][firefox-link]
+[![Chrome Web Store version][badge-chrome]][chrome-link]
+
+Browser extension for Chromium and Firefox that translates text in images using OCR and swaps the image source directly on the page.
 
 Translate pair: `auto` -> `ru` (auto-detected source language to Russian).
 
@@ -9,25 +17,31 @@ Translate pair: `auto` -> `ru` (auto-detected source language to Russian).
 - Adds a context menu action on images: **Toggle image translate**.
 - Runs OCR + translation through Yandex endpoints (via `ya-ocr`).
 - Toggles translated/original image on repeated clicks.
-- Caches translated result per image URL for faster repeated usage.
+- Caches translated results by image URL in memory for faster repeated use.
 
 ## How It Works
 
 1. Right-click an image and choose **Toggle image translate**.
 2. Background script sends the image URL to OCR client.
 3. Returned translated SVG is converted to a `data:image/svg+xml;base64,...` URL.
-4. Content script replaces matching `<img src="...">` elements on the page.
+4. Content script replaces every matching `<img>` element on the page.
 5. Repeating the action restores the original image.
+
+## Install the Extension
+
+- [Install for Firefox][firefox-link]
+- [Install for Chrome][chrome-link]
+
+> **Chrome availability:** If the Chrome Web Store listing is unavailable, the extension is still being reviewed by the store. Please try again later.
 
 ## Requirements
 
-- Node.js 18+
-- npm
+- [Bun](https://bun.sh/)
 
-## Installation
+## Development Setup
 
 ```bash
-npm install
+bun install
 ```
 
 ## Development
@@ -35,13 +49,13 @@ npm install
 Start extension development build:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Start Firefox development build:
 
 ```bash
-npm run dev:firefox
+bun run dev:firefox
 ```
 
 ## Build
@@ -49,31 +63,35 @@ npm run dev:firefox
 Build production package:
 
 ```bash
-npm run build
+bun run build
 ```
 
 Build for Firefox:
 
 ```bash
-npm run build:firefox
+bun run build:firefox
 ```
+
+The unpacked builds are written to `.output/chrome-mv3` and `.output/firefox-mv2`, respectively. Load `.output/chrome-mv3` as an unpacked extension in a Chromium browser, or load `.output/firefox-mv2/manifest.json` as a temporary add-on in Firefox.
 
 Create ZIP package:
 
 ```bash
-npm run zip
+bun run zip
 ```
 
 Create Firefox ZIP package:
 
 ```bash
-npm run zip:firefox
+bun run zip:firefox
 ```
+
+ZIP archives are written to `.output/`.
 
 ## Type Check
 
 ```bash
-npm run compile
+bun run compile
 ```
 
 ## Permissions
@@ -99,7 +117,8 @@ src/
 
 ## Limitations
 
-- `blob:`, `file:`, and `data:` image URLs are not translated unless already translated.
+- `blob:`, `file:`, and `data:` image URLs cannot be submitted for translation; images already translated by the extension can still be restored.
+- The translated-image cache lasts only for the current background-script lifetime.
 - Translation quality depends on source image quality and OCR recognition.
 
 ## Tech Stack
@@ -108,3 +127,7 @@ src/
 - TypeScript.
 - `@webext-core/messaging` for typed extension messaging.
 - `ya-ocr` client for OCR + translation requests.
+
+## Preview
+
+![preview](./img/preview.gif)
