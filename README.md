@@ -1,4 +1,4 @@
-[badge-firefox]: https://img.shields.io/amo/dw/translate-image
+[badge-firefox]: https://img.shields.io/amo/v/translate-image
 [badge-chrome]: https://img.shields.io/chrome-web-store/v/mfbjdcajnhcdbclbibbmjanmofmnpdnc
 [firefox-link]: https://addons.mozilla.org/ru/firefox/addon/translate-image
 [chrome-link]: https://chromewebstore.google.com/detail/mfbjdcajnhcdbclbibbmjanmofmnpdnc
@@ -32,7 +32,7 @@ Translate pair: `auto` -> `ru` (auto-detected source language to Russian).
 - [Install for Firefox][firefox-link]
 - [Install for Chrome][chrome-link]
 
-> **Chrome availability:** If the Chrome Web Store listing is unavailable, the extension is still being reviewed by the store. Please try again later.
+> **Availability:** If the Store listing is unavailable, the extension is still being reviewed by the store. Please try again later.
 
 ## Requirements
 
