@@ -1,38 +1,59 @@
 import { onMessage } from "@/utils/messaging";
 
-const originalSrcMap = new Map();
+const originalSrcMap = new WeakMap<HTMLImageElement, string>();
+
+function getImagesBySrc(src: string): HTMLImageElement[] {
+  return Array.from(document.images).filter((img) => img.src === src);
+}
+
+function disableImgTranslate(img: HTMLImageElement) {
+  const originalSrc = originalSrcMap.get(img);
+  if (!originalSrc) {
+    return;
+  }
+
+  img.setAttribute("src", originalSrc);
+  img.dataset.yaTranslated = "false";
+  originalSrcMap.delete(img);
+}
+
+function enableImgTranslate(
+  img: HTMLImageElement,
+  src: string,
+  newSrc?: string,
+) {
+  if (!newSrc) {
+    return;
+  }
+
+  originalSrcMap.set(img, img.getAttribute("src") ?? src);
+  img.src = newSrc;
+  img.dataset.yaTranslated = "true";
+}
 
 export default defineContentScript({
   registration: "runtime",
   main() {
-    console.log("Hello content.");
     onMessage("ping", () => ({ ok: true }));
 
     onMessage("isTranslatedImage", (message) => {
       const src = message.data;
-      return (
-        document.querySelectorAll<HTMLImageElement>(
-          `img[src="${src}"][data-ya-translated="true"]`,
-        ).length > 0
+      return getImagesBySrc(src).some(
+        (img) => img.dataset.yaTranslated === "true",
       );
     });
 
     onMessage("translateImagesBySrc", (message) => {
       const data = message.data;
-      const images = document.querySelectorAll<HTMLImageElement>(
-        `img[src="${data.src}"]`,
-      );
+      const images = getImagesBySrc(data.src);
       for (const img of images) {
         const isTranslated = img.dataset.yaTranslated === "true";
-        if (!isTranslated) {
-          originalSrcMap.set(img, data.src);
+        if (isTranslated) {
+          disableImgTranslate(img);
+          continue;
         }
 
-        img.src = isTranslated ? originalSrcMap.get(img) : data.newSrc;
-        img.dataset.yaTranslated = String(!isTranslated);
-        if (isTranslated && originalSrcMap.has(img)) {
-          originalSrcMap.delete(img);
-        }
+        enableImgTranslate(img, data.src, data.newSrc);
       }
     });
   },
