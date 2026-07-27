@@ -24,7 +24,11 @@ function toBase64(value: string): string {
   return btoa(binary);
 }
 
-async function getTranslatedImage(isTranslatedImage: boolean, src: string) {
+async function getTranslatedImage(
+  isTranslatedImage: boolean,
+  src: string,
+  tabId: number,
+) {
   if (isTranslatedImage) {
     return undefined;
   }
@@ -33,25 +37,36 @@ async function getTranslatedImage(isTranslatedImage: boolean, src: string) {
     return cachedImages.get(src);
   }
 
-  const res = await client.scanByUrl(src);
-  const newSrc = `data:image/svg+xml;base64,${toBase64(res.svg as string)}`;
-  cachedImages.set(src, newSrc);
-  return newSrc;
+  const imageBlob = await sendMessage("getImageBlob", src, tabId);
+
+  try {
+    const res = imageBlob
+      ? await client.scanByBlob(imageBlob)
+      : await client.scanByUrl(src);
+    const newSrc = `data:image/svg+xml;base64,${toBase64(res.svg as string)}`;
+    cachedImages.set(src, newSrc);
+    return newSrc;
+  } catch (err) {
+    console.error("[internal] Failed to translate image:", err);
+    const message = "Failed to translate image. Please try again later.";
+    await sendMessage("translateError", message, tabId);
+    throw new Error(message);
+  }
 }
 
 const isInvalidSrc = (src: string) => {
-  return ["blob:", "file:", "data:"].some((proto) => src.startsWith(proto));
+  return ["file:", "data:"].some((proto) => src.startsWith(proto));
 };
 
 async function translateImgBySrc(tabId: number, src: string) {
   const isTranslatedImage = await sendMessage("isTranslatedImage", src, tabId);
   if (isInvalidSrc(src) && !isTranslatedImage) {
-    return console.error(
-      "Blob images can't be translated. Please use a direct image URL.",
-    );
+    const message = "This image source isn't supported for translation :c";
+    await sendMessage("translateError", message, tabId);
+    return console.error(message);
   }
 
-  const newSrc = await getTranslatedImage(isTranslatedImage, src);
+  const newSrc = await getTranslatedImage(isTranslatedImage, src, tabId);
   await sendMessage(
     "translateImagesBySrc",
     {

@@ -117,7 +117,7 @@ src/
 
 ## Limitations
 
-- `blob:`, `file:`, and `data:` image URLs cannot be submitted for translation; images already translated by the extension can still be restored.
+- `file:`, and `data:` image URLs cannot be submitted for translation; images already translated by the extension can still be restored.
 - The translated-image cache lasts only for the current background-script lifetime.
 - Translation quality depends on source image quality and OCR recognition.
 

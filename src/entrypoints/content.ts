@@ -26,9 +26,23 @@ function enableImgTranslate(
     return;
   }
 
-  originalSrcMap.set(img, img.getAttribute("src") ?? src);
+  originalSrcMap.set(img, src);
   img.src = newSrc;
   img.dataset.yaTranslated = "true";
+}
+
+function getImageBlob(img: HTMLImageElement): Promise<Blob | null> {
+  const canvas = document.createElement("canvas");
+  // biome-ignore lint/style/noNonNullAssertion: trust me
+  const ctx = canvas.getContext("2d")!;
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  ctx.drawImage(img, 0, 0);
+  return new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob);
+    });
+  });
 }
 
 export default defineContentScript({
@@ -43,7 +57,22 @@ export default defineContentScript({
       );
     });
 
-    onMessage("translateImagesBySrc", (message) => {
+    onMessage("getImageBlob", async (message) => {
+      const src = message.data;
+      const images = getImagesBySrc(src);
+      if (!images.length) {
+        return null;
+      }
+
+      const img = images[0];
+      if (!img) {
+        return null;
+      }
+
+      return await getImageBlob(img);
+    });
+
+    onMessage("translateImagesBySrc", async (message) => {
       const data = message.data;
       const images = getImagesBySrc(data.src);
       for (const img of images) {
