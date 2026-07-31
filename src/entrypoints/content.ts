@@ -1,9 +1,13 @@
 import { onMessage } from "@/utils/messaging";
 
-const originalSrcMap = new WeakMap<HTMLImageElement, string>();
+type ImageData = { src: string; srcset: string };
+
+const originalSrcMap = new WeakMap<HTMLImageElement, ImageData>();
 
 function getImagesBySrc(src: string): HTMLImageElement[] {
-  return Array.from(document.images).filter((img) => img.src === src);
+  return Array.from(document.images).filter(
+    (img) => img.src === src || img.currentSrc === src,
+  );
 }
 
 function disableImgTranslate(img: HTMLImageElement) {
@@ -12,7 +16,9 @@ function disableImgTranslate(img: HTMLImageElement) {
     return;
   }
 
-  img.setAttribute("src", originalSrc);
+  const { src, srcset } = originalSrc;
+  img.src = src;
+  img.srcset = srcset;
   img.dataset.yaTranslated = "false";
   originalSrcMap.delete(img);
 }
@@ -26,8 +32,9 @@ function enableImgTranslate(
     return;
   }
 
-  originalSrcMap.set(img, src);
+  originalSrcMap.set(img, { src, srcset: img.srcset });
   img.src = newSrc;
+  img.srcset = "";
   img.dataset.yaTranslated = "true";
 }
 
@@ -35,9 +42,10 @@ function getImageBlob(img: HTMLImageElement): Promise<Blob | null> {
   const canvas = document.createElement("canvas");
   // biome-ignore lint/style/noNonNullAssertion: trust me
   const ctx = canvas.getContext("2d")!;
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  ctx.drawImage(img, 0, 0);
+  const rect = img.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return new Promise<Blob | null>((resolve) => {
     canvas.toBlob((blob) => {
       resolve(blob);
@@ -69,7 +77,11 @@ export default defineContentScript({
         return null;
       }
 
-      return await getImageBlob(img);
+      try {
+        return await getImageBlob(img);
+      } catch {
+        return null;
+      }
     });
 
     onMessage("translateImagesBySrc", async (message) => {
