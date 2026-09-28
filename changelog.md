@@ -1,3 +1,7 @@
+# 1.0.3
+
+- Changed extension icon
+
 # 1.0.2
 
 - Added support translating images with `srcset` attribute
