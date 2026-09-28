@@ -103,18 +103,6 @@ The extension requests:
 - `declarativeNetRequest` to adjust request headers for OCR/translate endpoints.
 - `host_permissions: ["<all_urls>"]` to work on any site.
 
-## Project Structure
-
-```text
-src/
-	entrypoints/
-		background.ts   # context menu + OCR request + toggle message
-		content.ts      # image replacement and restore logic
-	utils/
-		fetch.ts        # declarativeNetRequest session rule
-		messaging.ts    # typed message protocol between scripts
-```
-
 ## Limitations
 
 - `file:`, and `data:` image URLs cannot be submitted for translation; images already translated by the extension can still be restored.
